@@ -7,13 +7,12 @@ import server.http.Response;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import server.http.ConnectionType;
+import server.web.WebClient;
 
 /**
- * Created with IntelliJ IDEA.
- * User: alo
- * Date: 10/22/13
- * Time: 4:36 PM
- * To change this template use File | Settings | File Templates.
+ * Created with IntelliJ IDEA. User: alo Date: 10/22/13 Time: 4:36 PM To change
+ * this template use File | Settings | File Templates.
  */
 public class ProxyServer extends Server {
 
@@ -23,47 +22,46 @@ public class ProxyServer extends Server {
         serverSocker = 1111;
     }
 
+    public ProxyServer(int port) {
+        serverSocker = port;
+    }
+
     public void Start() throws IOException {
-        String requestMessageLine;
         ServerSocket listenSocket;
         listenSocket = new ServerSocket(serverSocker, 50);
-        Socket hostSocket;
         while (true) {
             Socket clientSocket = listenSocket.accept();
 
             BufferedReader fromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             Request request = new Request(fromClient);
-
-
+            
+            // build a new HTTP request avoiding encoding char
+            String header = "Host:" + request.getHost() + "\r\n";
+            if (request.getConnectionType() == ConnectionType.Close) {
+                header = header + "Connection: close\r\n";
+            } else {
+                header = header + "Connection: keep-alive\r\n";
+            }
+            Request newRequest = new Request(request.getMethod(), request.getURL().toString(), request.getHTTPVersion(), header);
+            
             //Forward the request to the real server.
-            if (request.getHost() != null){
-                hostSocket = new Socket(request.getHost(), request.getPort());
+            if (request.getHost() != null) {
+                WebClient webClient = new WebClient();
+                Response response = webClient.SendRequest(newRequest);
 
-                DataOutputStream toHost = new DataOutputStream(hostSocket.getOutputStream());
-                toHost.write(request.getBytes());
-                toHost.flush();
-                System.out.println("Proxy Writing data from client to server: " + request.toString());
-
-
-                // forward the response from the server to the client (browser)
-                InputStream inHost = hostSocket.getInputStream();
                 OutputStream toClient = clientSocket.getOutputStream();
-                byte[] buffer = new byte[2000];
-                int nbRead = inHost.read(buffer);
-                Response response = new Response(buffer);
-                while (nbRead > 0) {
-
-                    try {
-                        System.out.println("Proxy Writing data from server to client: " + new String(buffer));
-                        toClient.write(buffer, 0, nbRead);
-                        toClient.flush();
-                    } catch (Exception ex) {
-                        System.out.println(ex);
-                    }
-                    nbRead = nbRead + inHost.read(buffer);
+                if (response.getHeaders().contains("Connection: Keep-Alive")) {
+                    header = response.getHeaders().replace("Connection: Keep-Alive", "Connection: Close");
+                } else {
+                    header = response.getHeaders() + "Connection: Close\r\n";
                 }
+                header = header.replace("Vary: Accept-Encoding\r\n", "");
+                header = header.replace("Content-Encoding: gzip\r\n", "");
+                response.setHeaders(header);
+
+                toClient.write(response.toString().getBytes());
+                toClient.flush();
                 clientSocket.close();
-                hostSocket.close();
             }
 
         }

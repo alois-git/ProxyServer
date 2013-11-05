@@ -28,13 +28,11 @@ public class WebServer extends Server {
                     outToClient.close();
 
                 } catch (Exception ex) {
-                    //if you could not open the file send a 404
                     outToClient.println("HTTP/1.0 404 Not Found");
                     outToClient.println("Server: SimpleWebServer");
                     outToClient.println("");
                     outToClient.println("404 guess what ? :D");
                     outToClient.flush();
-                    //close the stream
                     outToClient.close();
                 }
 

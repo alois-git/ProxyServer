@@ -5,6 +5,7 @@ import server.http.Response;
 
 import java.io.*;
 import java.net.Socket;
+import server.http.ConnectionType;
 
 public class WebClient {
 
@@ -23,55 +24,61 @@ public class WebClient {
                 new InputStreamReader(inHost)
         );
 
-
         String header = GetHeader(inFromHost);
         Response response = new Response(header.getBytes());
         int nbRead = 0;
         String content;
+        // Check if it is a chunked response or not
         if (!response.isChunked()) {
-            // if it is not chunked we have to check the content Length to support persistent connection.
-            // check if the content length is not -1 if it is we don't have a persistent connection.
-            if (response.getContentLength() != -1){
-                char[] contentValue = new char[response.getContentLength()];
-                while (nbRead < response.getContentLength()) {
-                    try {
-                        contentValue[nbRead] = (char) inFromHost.read();
-                    } catch (Exception ex) {
-                        System.out.println(ex);
+            // check if it is a persistent connection or not.
+            if (response.getConnectionType() == ConnectionType.Persistent) {
+                if (response.getContentLength() != -1) {
+                    char[] contentValue = new char[response.getContentLength()];
+                    while (nbRead < response.getContentLength()) {
+                        try {
+                            contentValue[nbRead] = (char) inFromHost.read();
+                        } catch (IOException ex) {
+                            System.out.println(ex);
+                        }
+                        nbRead++;
                     }
-                    nbRead++;
+                    content = new String(contentValue);
+                } else {
+                    content = "";
                 }
-                content = new String(contentValue);
-            }
-            else
-            {
+
+            } else {
                 content = "";
                 char[] buffer = new char[2000];
-                nbRead= inFromHost.read(buffer);
+                nbRead = inFromHost.read(buffer);
                 while (nbRead > 0) {
                     content += new String(buffer);
                     nbRead = inFromHost.read(buffer);
                 }
             }
-        }
-        else
-        {
+        } else {
             // if it is chunked we need to check before each packet his length
             content = "";
             int length = Integer.parseInt(inFromHost.readLine(), 16);
             while (length != 0) {
                 nbRead = 0;
-                while (nbRead < length) {
+                while (nbRead <= length) {
                     try {
                         content += (char) inFromHost.read();
-                    } catch (Exception ex) {
+                    } catch (IOException ex) {
                         System.out.println(ex);
                     }
                     nbRead++;
                 }
                 // skip the break line
-                inFromHost.readLine();
-                length = Integer.parseInt(inFromHost.readLine(), 16);
+                String line = inFromHost.readLine();
+                try {
+                    line = inFromHost.readLine();
+                    length = Integer.parseInt(line, 16);
+                } catch (NumberFormatException ex) {
+                    System.out.println(ex);
+                }
+
             }
         }
         response.setContent(content);

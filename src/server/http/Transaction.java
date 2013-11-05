@@ -1,23 +1,34 @@
 package server.http;
 
-/**
- * Created with IntelliJ IDEA.
- * User: alo
- * Date: 10/24/13
- * Time: 4:21 PM
- * To change this template use File | Settings | File Templates.
- */
+
 public abstract class Transaction {
+
     protected String httpVersion;
+    protected ConnectionType connectionType = ConnectionType.Persistent;
+    protected String headers;
+    protected String host;
+    protected int port;
+    protected int contentLength;
+
+    public int getContentLength() {
+        return contentLength;
+    }
+
+    public void setContentLength(int contentLength) {
+        this.contentLength = contentLength;
+    }
+    
+    public void setHeaders(String headers) {
+        this.headers = headers;
+    }
+    
+    public ConnectionType getConnectionType() {
+        return connectionType;
+    }
 
     public String getHeaders() {
         return headers;
     }
-
-    protected String headers;
-    protected String host;
-    protected int port;
-    protected  byte[] fullContent;
 
     public String getContent() {
         return content;
@@ -46,7 +57,7 @@ public abstract class Transaction {
     }
 
     /**
-
+     *
      * Return the version of HTTP considered by the request.
      *
      * @return the version of HTTP considered by the request.
@@ -56,7 +67,8 @@ public abstract class Transaction {
     }
 
     /**
-     * Return the value of the header identified by the name passed in parameter.
+     * Return the value of the header identified by the name passed in
+     * parameter.
      *
      * @param headerName the name of the header.
      * @return the value of the header.
@@ -71,14 +83,5 @@ public abstract class Transaction {
             }
         }
         return null;
-    }
-
-    /**
-     * Return a byte array (which can be sent through the network) corresponding to the HTTP response.
-     *
-     * @return the byte array corresponding to the HTTP response.
-     */
-    public byte[] getBytes() {
-        return this.fullContent;
     }
 }

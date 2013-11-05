@@ -1,23 +1,24 @@
 package server.http;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 public class Request extends Transaction {
+
     private String method;
     private URL url;
-    private String connectionType = "close";
     private final static String EOL = "\r\n";
     private final static int httpPort = 80;
 
     /**
      * Request constructor.
      *
-     * @param method      the method attached to the request.
-     * @param url         the url attached to the request.
+     * @param method the method attached to the request.
+     * @param url the url attached to the request.
      * @param httpVersion the version of HTTP considered by the request.
-     * @param headers     all the headers attached to the request.
+     * @param headers all the headers attached to the request.
      */
     public Request(String method, String url, String httpVersion, String headers) throws MalformedURLException {
         this.method = method;
@@ -42,7 +43,11 @@ public class Request extends Transaction {
                 // Get connection type.
                 if (line.startsWith("Connection:")) {
                     tmp = line.split(":");
-                    connectionType = tmp[1].replace("\r", "").trim();
+                    if (tmp[1].equals("close")) {
+                        connectionType = ConnectionType.Close;
+                    } else {
+                        connectionType = ConnectionType.Persistent;
+                    }
                 }
                 // get the host
                 if (line.startsWith("Host:")) {
@@ -50,11 +55,22 @@ public class Request extends Transaction {
                     host = tmp[1].replace("\r", "").trim();
                     port = httpPort;
                 }
+
+                // get the content lenght
+                if (line.startsWith("Content-Length:")) {
+                    tmp = line.split(":");
+                    try {
+                        contentLength = Integer.parseInt(tmp[1].replace("\r", "").trim());
+                    } catch (NumberFormatException ex) {
+
+                    }
+                }
+
                 headers += line + EOL;
 
                 line = from.readLine();
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             System.out.println("Error reading from socket: " + e);
         }
     }
@@ -78,7 +94,8 @@ public class Request extends Transaction {
     }
 
     /**
-     * Return a byte array (which can be sent through the network) corresponding to the HTTP request.
+     * Return a byte array (which can be sent through the network) corresponding
+     * to the HTTP request.
      *
      * @return the byte array corresponding to the HTTP request.
      */
@@ -87,8 +104,9 @@ public class Request extends Transaction {
     }
 
     public boolean equals(Object o) {
-        if (!(o instanceof Request))
+        if (!(o instanceof Request)) {
             return false;
+        }
 
         Request hr = (Request) o;
 
