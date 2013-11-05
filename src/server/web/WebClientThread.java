@@ -47,12 +47,6 @@ public class WebClientThread implements Runnable {
             System.out.println("--------- Content ------------");
             System.out.println(resultFromRequest.getContent());
             System.out.println(resultFromRequest.getContent().length());
-
-            OutputStream out;
-            FileOutputStream stream = new FileOutputStream(url.getHost() + url.getPath());
-            out = new BufferedOutputStream(stream);
-            out.write(resultFromRequest.getContent().getBytes());
-            out.close();
             
         } catch (MalformedURLException ex) {
             System.out.println(urlString + "is a malformedURL");
