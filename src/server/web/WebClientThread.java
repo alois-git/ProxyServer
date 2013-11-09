@@ -5,10 +5,7 @@
  */
 package server.web;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import server.http.Request;
@@ -35,7 +32,7 @@ public class WebClientThread implements Runnable {
                     + "Connection: keep-alive\r\n";
 
             // build a GET HTTP request
-            Request request = new Request("GET", url.toString(), "HTTP/1.1", header);
+            Request request = new Request("GET", url, "HTTP/1.1", header);
 
             // sending the request to the web server
             WebClient webClient = new WebClient();

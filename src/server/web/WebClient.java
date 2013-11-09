@@ -5,6 +5,7 @@ import server.http.Response;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Timer;
 import server.http.ConnectionType;
 
 public class WebClient {
@@ -20,11 +21,8 @@ public class WebClient {
         toHost.flush();
 
         InputStream inHost = hostSocket.getInputStream();
-        BufferedReader inFromHost = new BufferedReader(
-                new InputStreamReader(inHost)
-        );
 
-        String header = GetHeader(inFromHost);
+        String header = GetHeader(inHost);
         Response response = new Response(header.getBytes());
         int nbRead = 0;
         String content;
@@ -32,68 +30,97 @@ public class WebClient {
         if (!response.isChunked()) {
             // check if it is a persistent connection or not.
             if (response.getConnectionType() == ConnectionType.Persistent) {
+                long startTime = System.currentTimeMillis();
+                content = "";
                 if (response.getContentLength() != -1) {
-                    char[] contentValue = new char[response.getContentLength()];
+                    byte[] contentValue = new byte[response.getContentLength()];
                     while (nbRead < response.getContentLength()) {
                         try {
-                            contentValue[nbRead] = (char) inFromHost.read();
+                            nbRead += inHost.read(contentValue);
+                            content += new String(contentValue);
                         } catch (IOException ex) {
                             System.out.println(ex);
                         }
-                        nbRead++;
                     }
-                    content = new String(contentValue);
-                } else {
-                    content = "";
                 }
+                long stopTime = System.currentTimeMillis();
+                long elapsedTime = stopTime - startTime;
+                System.out.println("persistent connection" + elapsedTime);
 
             } else {
+                long startTime = System.currentTimeMillis();
                 content = "";
-                char[] buffer = new char[2000];
-                nbRead = inFromHost.read(buffer);
+                byte[] buffer = new byte[2000];
+                nbRead = inHost.read(buffer);
                 while (nbRead > 0) {
                     content += new String(buffer);
-                    nbRead = inFromHost.read(buffer);
+                    nbRead = inHost.read(buffer);
                 }
+                long stopTime = System.currentTimeMillis();
+                long elapsedTime = stopTime - startTime;
+                System.out.println("non persistente connection" + elapsedTime);
             }
         } else {
-            // if it is chunked we need to check before each packet his length
+            long startTime = System.currentTimeMillis();
+            byte[] contentValue = new byte[2000];
+
             content = "";
-            int length = Integer.parseInt(inFromHost.readLine(), 16);
+            int length = 0;
+            try {
+                String number = readLine(inHost);
+                length = Integer.parseInt(number, 16);
+            } catch (NumberFormatException ex) {
+                System.out.println(ex);
+            }
             while (length != 0) {
                 nbRead = 0;
-                while (nbRead <= length) {
+                while (nbRead < length) {
                     try {
-                        content += (char) inFromHost.read();
+                        nbRead += inHost.read(contentValue);
+                        content += new String(contentValue);
                     } catch (IOException ex) {
                         System.out.println(ex);
                     }
-                    nbRead++;
                 }
+
                 // skip the break line
-                String line = inFromHost.readLine();
+                readLine(inHost);
                 try {
-                    line = inFromHost.readLine();
+                    String line = readLine(inHost);
                     length = Integer.parseInt(line, 16);
                 } catch (NumberFormatException ex) {
                     System.out.println(ex);
                 }
-
             }
+            long stopTime = System.currentTimeMillis();
+            long elapsedTime = stopTime - startTime;
+            System.out.println("chunked connection" + elapsedTime);
         }
         response.setContent(content);
         hostSocket.close();
         return response;
     }
 
-    private String GetHeader(BufferedReader inFromHost) throws IOException {
+    private String GetHeader(InputStream inFromHost) throws IOException {
         String header = "";
-        String line = inFromHost.readLine();
+        String line = readLine(inFromHost);
         while (!line.equals("")) {
             header += line + "\r\n";
-            line = inFromHost.readLine();
-
+            line = readLine(inFromHost);
         }
         return header;
+    }
+
+    public static String readLine(InputStream s) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        int b;
+
+        //lecture caractère par caractère
+        while ((b = s.read()) >= 0 && b != '\n') {
+            //on a trouvé un retour à la ligne, on arrête		
+            baos.write(b);
+        }
+        String ret = baos.toString().substring(0, baos.size() - 1);
+        return ret;
     }
 }

@@ -1,5 +1,6 @@
 package server.http;
 
+import com.sun.corba.se.impl.naming.cosnaming.NamingContextImpl;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -20,56 +21,65 @@ public class Request extends Transaction {
      * @param httpVersion the version of HTTP considered by the request.
      * @param headers all the headers attached to the request.
      */
-    public Request(String method, String url, String httpVersion, String headers) throws MalformedURLException {
+    public Request(String method, URL url, String httpVersion, String headers) throws MalformedURLException {
         this.method = method;
-        this.url = new URL(url);
+        this.url = url;
         this.httpVersion = httpVersion;
         this.headers = headers;
-        this.host = this.url.getHost();
+        if (url != null) {
+            this.host = this.url.getHost();
+        }
         this.port = httpPort;
     }
 
     public Request(BufferedReader from) {
         try {
             String firstLine = from.readLine();
-            String[] tmp = firstLine.split(" ");
-            method = tmp[0];
-            url = new URL(tmp[1]);
-            httpVersion = tmp[2];
-            headers = "";
-            String line = from.readLine();
-            while (line.length() != 0) {
+            if (firstLine != null) {
+                String[] tmp = firstLine.split(" ");
+                method = tmp[0];
+                if (method.equals("GET")) {
+                    url = new URL(tmp[1]);
+                }
+                httpVersion = tmp[2];
+                headers = "";
+                String line = from.readLine();
+                while (line.length() != 0) {
 
-                // Get connection type.
-                if (line.startsWith("Connection:")) {
-                    tmp = line.split(":");
-                    if (tmp[1].equals("close")) {
-                        connectionType = ConnectionType.Close;
-                    } else {
-                        connectionType = ConnectionType.Persistent;
+                    // Get connection type.
+                    if (line.startsWith("Connection:")) {
+                        tmp = line.split(":");
+                        if (tmp[1].equals("close")) {
+                            connectionType = ConnectionType.Close;
+                        } else {
+                            connectionType = ConnectionType.Persistent;
+                        }
                     }
-                }
-                // get the host
-                if (line.startsWith("Host:")) {
-                    tmp = line.split(":");
-                    host = tmp[1].replace("\r", "").trim();
-                    port = httpPort;
-                }
-
-                // get the content lenght
-                if (line.startsWith("Content-Length:")) {
-                    tmp = line.split(":");
-                    try {
-                        contentLength = Integer.parseInt(tmp[1].replace("\r", "").trim());
-                    } catch (NumberFormatException ex) {
-
+                    // get the host
+                    if (line.startsWith("Host:")) {
+                        tmp = line.split(":");
+                        host = tmp[1].replace("\r", "").trim();
+                        if (tmp.length > 2) {
+                            port = Integer.parseInt(tmp[2]);
+                        }
+                        port = httpPort;
                     }
+
+                    // get the content lenght
+                    if (line.startsWith("Content-Length:")) {
+                        tmp = line.split(":");
+                        try {
+                            contentLength = Integer.parseInt(tmp[1].replace("\r", "").trim());
+                        } catch (NumberFormatException ex) {
+
+                        }
+                    }
+
+                    headers += line + EOL;
+                    line = from.readLine();
                 }
-
-                headers += line + EOL;
-
-                line = from.readLine();
             }
+
         } catch (IOException e) {
             System.out.println("Error reading from socket: " + e);
         }

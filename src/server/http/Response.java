@@ -10,6 +10,33 @@ public class Response extends Transaction {
     private String status;
     private String reason;
     private boolean chunked = false;
+    private String contentType;
+    private String server;
+    private String date;
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public String getServer() {
+        return server;
+    }
+
+    public void setServer(String server) {
+        this.server = server;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
 
     public boolean isChunked() {
         return chunked;
@@ -70,6 +97,20 @@ public class Response extends Transaction {
                     if (line.contains("Transfer-Encoding: chunked")) {
                         chunked = true;
                     }
+                    // Get server .
+                    if (line.startsWith("Server:")) {
+                        server = line;
+                    }
+
+                    // Get date .
+                    if (line.startsWith("Date:")) {
+                        date = line;
+                    }
+
+                    // Get content type .
+                    if (line.startsWith("Content-Type:")) {
+                        contentType = line;
+                    }
 
                     sBuf.append(line).append("\r\n");
                 }
@@ -108,7 +149,15 @@ public class Response extends Transaction {
     public String StatusLineAndHeaders() {
         StringBuilder result = new StringBuilder();
         result.append(httpVersion).append(" ").append(status).append(" ").append(reason).append("\r\n");
-        result.append(headers);
+        if (server != null) {
+            result.append(server).append("\r\n");
+        }
+        if (date != null) {
+            result.append(date).append("\r\n");
+        }
+        if (contentType != null) {
+            result.append(contentType).append("\r\n");
+        }
         result.append("\r\n");
         return result.toString();
     }
@@ -121,7 +170,9 @@ public class Response extends Transaction {
         return result.toString();
     }
 
+    @Override
     public int getContentLength() {
         return contentLength;
     }
+
 }

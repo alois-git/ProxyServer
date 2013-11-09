@@ -8,7 +8,11 @@ public abstract class Transaction {
     protected String headers;
     protected String host;
     protected int port;
-    protected int contentLength;
+    protected int contentLength;  
+    
+    public void setConnectionType(ConnectionType connectionType) {
+        this.connectionType = connectionType;
+    }
 
     public int getContentLength() {
         return contentLength;
