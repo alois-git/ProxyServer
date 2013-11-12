@@ -72,19 +72,23 @@ public class WebClient {
             } catch (NumberFormatException ex) {
                 System.out.println(ex);
             }
+            //   while (chunk-size > 0)
             while (length != 0) {
                 nbRead = 0;
+                
+                //read chunk-data and CRLF
                 while (nbRead < length) {
                     try {
                         nbRead += inHost.read(contentValue);
+                        // append chunk-data to entity-body
                         content += new String(contentValue);
                     } catch (IOException ex) {
                         System.out.println(ex);
                     }
                 }
-
-                // skip the break line
                 readLine(inHost);
+             
+                // read chunk-size and CRLF
                 try {
                     String line = readLine(inHost);
                     length = Integer.parseInt(line, 16);
