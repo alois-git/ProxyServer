@@ -16,3 +16,4 @@ Tested with :
 - http://www.perdu.com
 - http://www.aloispaulus.be
 - http://www.w3.org/Protocols/rfc2616/rfc2616.html
+- http://www.google.be/

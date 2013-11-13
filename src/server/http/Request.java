@@ -1,6 +1,5 @@
 package server.http;
 
-import com.sun.corba.se.impl.naming.cosnaming.NamingContextImpl;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.MalformedURLException;

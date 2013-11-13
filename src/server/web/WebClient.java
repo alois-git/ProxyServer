@@ -5,9 +5,7 @@ import server.http.Response;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Timer;
 import server.http.ConnectionType;
-import sun.security.util.Length;
 
 public class WebClient {
 
