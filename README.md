@@ -8,15 +8,22 @@ Requirement :
 
 Java JRE 7
 
-How to launch it :
+How to compile it :
 
-java -jar "JavaProxyServer.jar" port
-- port is optionnal, default port is 1111
+- go to JavaProxyServer/src
+- run command : javac  -sourcepath . server/main/Proxy.java 
+
+How to run it :
+
+- go to JavaProxyServer/src
+- run command : java -cp . server.main.Proxy port
+
+port is optionnal, default port is 1111
 
 Example :
 
-java -jar "JavaProxyServer.jar"
-java -jar "JavaProxyServer.jar" 1234
+java -cp . server.main.Proxy
+java -cp . server.main.Proxy 1234
 
 
 Tested with :
