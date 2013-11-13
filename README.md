@@ -1,14 +1,17 @@
 ProxyServer
 ===========
+Requirement :
+
+Java JRE 7
 
 Usage :
 
-java -cp . JavaProxyServer.Proxy port
+java -jar "JavaProxyServer.jar" port
 - port is optionnal, default port is 1111
 
 Example :
 
-java -cp . JavaProxyServer.Proxy 1234
+java -jar "JavaProxyServer.jar" 1234
 
 
 Tested with :
