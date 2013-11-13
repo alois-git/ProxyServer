@@ -13,7 +13,7 @@ public class Proxy {
                 ProxyServer proxyServer = new ProxyServer(port);
                 proxyServer.Start();
             } catch (NumberFormatException ex) {
-                System.out.println("Invalide port number");
+                System.out.println("Invalid port number");
             }
         } else {
             ProxyServer proxyServer = new ProxyServer();
