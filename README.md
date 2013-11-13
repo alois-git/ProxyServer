@@ -1,16 +1,21 @@
 ProxyServer
 ===========
+
+IDE : Netbeans
+Browser : Mozilla Firefox
+
 Requirement :
 
 Java JRE 7
 
-Usage :
+How to launch it :
 
 java -jar "JavaProxyServer.jar" port
 - port is optionnal, default port is 1111
 
 Example :
 
+java -jar "JavaProxyServer.jar"
 java -jar "JavaProxyServer.jar" 1234
 
 
