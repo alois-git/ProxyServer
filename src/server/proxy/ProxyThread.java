@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.URL;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import server.http.ConnectionType;
@@ -24,6 +26,8 @@ import server.web.WebClient;
 public class ProxyThread extends Thread {
 
     private Socket client;
+
+    private static HashMap<URL, Response> Cache = new HashMap<>();
 
     public ProxyThread(Socket client) {
         this.client = client;
@@ -45,17 +49,24 @@ public class ProxyThread extends Thread {
             }
 
             Request newRequest = new Request(request.getMethod(), request.getURL(), request.getHTTPVersion(), header);
-
-            //Forward the request to the real server.
-            if (newRequest.getHost() != null) {
-                WebClient webClient = new WebClient();
-                Response response = webClient.SendRequest(newRequest);
-                response.setConnectionType(ConnectionType.Close);
-                OutputStream toClient = client.getOutputStream();               
-
+            if (Cache.containsKey(newRequest.getURL())) {
+                OutputStream toClient = client.getOutputStream();
+                Response response = Cache.get(newRequest.getURL());
                 toClient.write(response.toString().getBytes());
                 toClient.flush();
                 client.close();
+            } else {
+                //Forward the request to the real server.
+                if (newRequest.getHost() != null) {
+                    WebClient webClient = new WebClient();
+                    Response response = webClient.SendRequest(newRequest);
+                    response.setConnectionType(ConnectionType.Close);
+                    OutputStream toClient = client.getOutputStream();
+                    toClient.write(response.toString().getBytes());
+                    toClient.flush();
+                    client.close();
+                    Cache.put(newRequest.getURL(), response);
+                }
             }
 
         } catch (IOException ex) {

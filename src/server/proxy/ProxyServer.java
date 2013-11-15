@@ -8,7 +8,7 @@ import java.net.ServerSocket;
 public class ProxyServer extends Server {
 
     int remotePort = 80;
-
+    
     public ProxyServer() {
         serverSocker = 1111;
     }
