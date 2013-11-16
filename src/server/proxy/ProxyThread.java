@@ -27,7 +27,7 @@ public class ProxyThread extends Thread {
 
     private Socket client;
 
-    private static HashMap<URL, Response> cache = new HashMap<>();
+    private static HashMap<URL, Response> cache = new HashMap<URL, Response>();
 
     public ProxyThread(Socket client) {
         this.client = client;
