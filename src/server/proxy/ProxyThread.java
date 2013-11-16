@@ -27,7 +27,7 @@ public class ProxyThread extends Thread {
 
     private Socket client;
 
-    private static HashMap<URL, Response> Cache = new HashMap<>();
+    private static HashMap<URL, Response> cache = new HashMap<>();
 
     public ProxyThread(Socket client) {
         this.client = client;
@@ -49,9 +49,11 @@ public class ProxyThread extends Thread {
             }
 
             Request newRequest = new Request(request.getMethod(), request.getURL(), request.getHTTPVersion(), header);
-            if (Cache.containsKey(newRequest.getURL())) {
+            
+            // Check if the page is in cache or not.
+            if (cache.containsKey(newRequest.getURL())) {
                 OutputStream toClient = client.getOutputStream();
-                Response response = Cache.get(newRequest.getURL());
+                Response response = cache.get(newRequest.getURL());
                 toClient.write(response.toString().getBytes());
                 toClient.flush();
                 client.close();
@@ -65,7 +67,7 @@ public class ProxyThread extends Thread {
                     toClient.write(response.toString().getBytes());
                     toClient.flush();
                     client.close();
-                    Cache.put(newRequest.getURL(), response);
+                    cache.put(newRequest.getURL(), response);
                 }
             }
 
