@@ -41,19 +41,19 @@ Conception :
 
 2) les requêtes :
 
-Pour chacun requête d'un client(browser) le proxy effectue les actions suivantes :
-- Crée un nouveau thread
-- Analyse la requête
-- Construit une nouvelle requête sur base de celle analysée
-- Envoie de cette requête au serveur
-- Recupère la réponse
+Pour chaque requête d'un client(browser) le proxy effectue les actions suivantes :
+- crée un nouveau thread
+- analyse la requête
+- construit une nouvelle requête sur base de celle analysée
+- rnvoie cette requête au serveur
+- recupère la réponse
 - renvoie cette réponse au client(browser)
 
-J'ai choisi cette approche car elle me permet de bien contrôler les requêtes envoyées au serveur et les réponses renvoyées par le proxy au client.
+J'ai choisi cette approche car elle me permet de bien contrôller les requêtes envoyées au serveur et les réponses renvoyées par le proxy au client.
 
 3) La cache :
 
 La cache correspond à une HashMap qui a comme clé, l'URL et comme valeur, la réponse.
-J'ai choisi cette méthode car elle est facile à mettre en place et efficace pour les performances grace à la Hash Map.
+J'ai choisi cette méthode car elle est facile à mettre en place et efficace pour les performances grace à la HashMap et son acces directe.
 
 
